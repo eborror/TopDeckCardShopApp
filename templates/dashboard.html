@@ -1,33 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <title>TopDeck Card Shop</title>
+
+    <!-- Your existing stylesheet -->
     <link rel="stylesheet" href="/static/css/style.css">
-    <title>TopDeck | Admin</title>
 </head>
+
 <body>
-    <div class="sidebar">
-        <h2>TopDeck Admin</h2>
-        <nav><ul><li><a href='/'>Dashboard</a></li></ul></nav>
-    </div>
-    <div class="main-content">
-        <h1>Operations Dashboard</h1>
-        <div class="card">
-            <h3>Hub Status</h3>
-            <table>
-                <tr><th>Hub</th><th>Capacity</th></tr>
-                {% for hub in hubs %}
-                <tr><td>{{ hub.HubName }}</td><td>{{ hub.Capacity }}</td></tr>
-                {% endfor %}
-            </table>
-        </div>
-        <div class="card">
-            <h3>New Checkout</h3>
-            <form action="/checkout" method="post">
-                <input type="number" name="member_id" placeholder="Member ID" required>
-                <input type="text" name="serial_num" placeholder="Bike Serial" required>
-                <button type="submit">Rent Bike</button>
+
+    <header>
+        <h1>TopDeck Card Shop</h1>
+        <p>Local Inventory Dashboard</p>
+    </header>
+
+    <main>
+
+        <!-- ================= PRODUCTS ================= -->
+        <section>
+            <h2>Products</h2>
+
+            {% if products %}
+                <div class="product-grid">
+                    {% for p in products %}
+                        <div class="product-card">
+                            <h3>{{ p.PRODUCT_NAME }}</h3>
+
+                            <p><strong>Price:</strong> ${{ p.PRODUCT_PRICELISTED }}</p>
+                            <p><strong>Stock:</strong> {{ p.PRODUCT_STOCK }}</p>
+                            <p><strong>ID:</strong> {{ p.PRODUCT_ID }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No products found.</p>
+            {% endif %}
+        </section>
+
+        <hr>
+
+        <!-- ================= ADD CUSTOMER ================= -->
+        <section>
+            <h2>Add Customer</h2>
+
+            <form method="post" action="/customer" class="form-box">
+
+                <input type="number" name="customer_id" placeholder="Customer ID" required>
+
+                <input type="text" name="first_name" placeholder="First Name" required>
+
+                <input type="text" name="last_name" placeholder="Last Name">
+
+                <input type="email" name="email" placeholder="Email">
+
+                <input type="text" name="phone" placeholder="Phone">
+
+                <button type="submit">Create Customer</button>
             </form>
-        </div>
-    </div>
+        </section>
+
+        <hr>
+
+        <!-- ================= CHECKOUT ================= -->
+        <section>
+            <h2>Checkout</h2>
+
+            <form method="post" action="/checkout" class="form-box">
+
+                <input type="number" name="customer_id" placeholder="Customer ID" required>
+
+                <input type="number" name="product_id" placeholder="Product ID" required>
+
+                <input type="number" name="quantity" placeholder="Quantity" required>
+
+                <button type="submit">Complete Purchase</button>
+            </form>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>TopDeck Card Shop © 2026</p>
+    </footer>
+
 </body>
 </html>
