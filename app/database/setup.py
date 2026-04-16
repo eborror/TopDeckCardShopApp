@@ -17,30 +17,97 @@ def init_db():
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS {os.getenv('DB_NAME')}")
         cursor.execute(f"USE {os.getenv('DB_NAME')}")
 
-        # DDL Statements
-        # Given example tables. Will need to be adjusted for actual card shop schema (e.g., Cards, Decks, Users, Purchases)
+        # Create User
+        cursor.execute(f"CREATE USER IF NOT EXISTS 'manager_mark'@'localhost' IDENTIFIED BY '{os.getenv('DB_PASS')}'")
+        cursor.execute(f"GRANT ALL PRIVILEGES ON {os.getenv('DB_NAME')}.* TO 'manager_mark'@'localhost'")
+        cursor.execute("FLUSH PRIVILEGES")
+
+        # Create Tables
         tables = {
-            "Tiers": "CREATE TABLE IF NOT EXISTS Tiers (TierID INT PRIMARY KEY, TierName VARCHAR(50), HourlyRate DECIMAL(5,2))",
-            "Hubs": "CREATE TABLE IF NOT EXISTS Hubs (HubID INT PRIMARY KEY, HubName VARCHAR(50), Capacity INT)",
-            "Members": "CREATE TABLE IF NOT EXISTS Members (MemberID INT PRIMARY KEY AUTO_INCREMENT, Name VARCHAR(100), TierID INT, FOREIGN KEY (TierID) REFERENCES Tiers(TierID))",
-            "Bikes": "CREATE TABLE IF NOT EXISTS Bikes (SerialNum VARCHAR(10) PRIMARY KEY, Model VARCHAR(50), Status VARCHAR(20), HubID INT, FOREIGN KEY (HubID) REFERENCES Hubs(HubID))",
-            "Rentals": "CREATE TABLE IF NOT EXISTS Rentals (RentalID INT PRIMARY KEY AUTO_INCREMENT, MemberID INT, SerialNum VARCHAR(10), StartTime DATETIME, EndTime DATETIME, FOREIGN KEY (MemberID) REFERENCES Members(MemberID), FOREIGN KEY (SerialNum) REFERENCES Bikes(SerialNum))"
+            "CUSTOMER": """
+                CREATE TABLE IF NOT EXISTS CUSTOMER(
+                    CUSTOMER_ID INT PRIMARY KEY,
+                    CUSTOMER_FNAME VARCHAR(45) NOT NULL,
+                    CUSTOMER_LNAME VARCHAR(45),
+                    CUSTOMER_EMAIL VARCHAR(45),
+                    CUSTOMER_PHONE VARCHAR(45)
+                )
+            """,
+
+            "LOCATION": """
+                CREATE TABLE IF NOT EXISTS LOCATION(
+                    LOCATION_ID INT PRIMARY KEY,
+                    LOCATION_ADDRESS VARCHAR(45)
+                )
+            """,
+
+            "PRODUCT": """
+                CREATE TABLE IF NOT EXISTS PRODUCT(
+                    PRODUCT_ID INT PRIMARY KEY,
+                    PRODUCT_NAME VARCHAR(45),
+                    PRODUCT_PRICEBOUGHT DECIMAL(5,2),
+                    PRODUCT_PRICELISTED DECIMAL(5,2),
+                    PRODUCT_STOCK INT
+                )
+            """,
+
+            "CASHIER": """
+                CREATE TABLE IF NOT EXISTS CASHIER(
+                    CASHIER_ID INT PRIMARY KEY,
+                    CASHIER_WAGE DECIMAL(5,2),
+                    CASHIER_HOURSWORKED INT,
+                    CUSTOMER_ID INT,
+                    LOCATION_ID INT,
+                    FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(CUSTOMER_ID),
+                    FOREIGN KEY (LOCATION_ID) REFERENCES LOCATION(LOCATION_ID)
+                )
+            """,
+
+            "MANAGER": """
+                CREATE TABLE IF NOT EXISTS MANAGER(
+                    MANAGER_ID INT PRIMARY KEY,
+                    MANAGER_WAGE DECIMAL(5,2),
+                    MANAGER_HOURSWORKED INT,
+                    CUSTOMER_ID INT,
+                    LOCATION_ID INT,
+                    FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(CUSTOMER_ID),
+                    FOREIGN KEY (LOCATION_ID) REFERENCES LOCATION(LOCATION_ID)
+                )
+            """,
+
+            "CHECKOUT": """
+                CREATE TABLE IF NOT EXISTS CHECKOUT(
+                    CHECKOUT_ID INT PRIMARY KEY,
+                    CHECKOUT_TOTAL_PRICE INT,
+                    CHECKOUT_DATE DATE,
+                    CASHIER_ID INT,
+                    CUSTOMER_ID INT,
+                    FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(CUSTOMER_ID),
+                    FOREIGN KEY (CASHIER_ID) REFERENCES CASHIER(CASHIER_ID)
+                )
+            """,
+
+            "PURCHASES": """
+                CREATE TABLE IF NOT EXISTS PURCHASES(
+                    PURCHASES_ID INT PRIMARY KEY,
+                    PURCHASES_QUANTITY INT,
+                    PRODUCT_ID INT,
+                    CHECKOUT_ID INT,
+                    FOREIGN KEY (PRODUCT_ID) REFERENCES PRODUCT(PRODUCT_ID),
+                    FOREIGN KEY (CHECKOUT_ID) REFERENCES CHECKOUT(CHECKOUT_ID)
+                )
+            """
         }
 
         for name, ddl in tables.items():
             cursor.execute(ddl)
             print(f"Table '{name}' verified.")
-
-        # Seed Data (INSERT IGNORE prevents primary key conflicts)
-        cursor.execute("INSERT IGNORE INTO Tiers VALUES (1, 'Standard', 5.00), (2, 'Premium', 10.00)")
-        cursor.execute("INSERT IGNORE INTO Hubs VALUES (1, 'Downtown Central', 25), (2, 'North Campus', 15)")
-        cursor.execute("INSERT IGNORE INTO Members (MemberID, Name, TierID) VALUES (1, 'Alice Jones', 2), (2, 'Bob Smith', 1)")
-        cursor.execute("INSERT IGNORE INTO Bikes VALUES ('B001', 'Roadster', 'Available', 1), ('B002', 'Electric', 'Available', 2)")
         
         conn.commit()
         print("--- Database Setup Complete ---")
     except Exception as e:
         print(f"DB Error: {e}")
+
     finally:
         if 'conn' in locals() and conn.is_connected():
             cursor.close()

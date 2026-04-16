@@ -29,24 +29,21 @@ def get_db_conn():
 def dashboard(request: Request):
     conn = get_db_conn()
     cursor = conn.cursor(dictionary=True)
-#   Given Example for fetching Hubs and Active Rentals (commented out for now)
-#     try:
-#        cursor.execute("SELECT * FROM Hubs")
-#        hubs = cursor.fetchall()
-#        
-#        # Joined Query for Active Rentals
-#        # query = \"SELECT R.RentalID, M.Name as MemberName, R.SerialNum, R.StartTime FROM Rentals R JOIN Members M ON R.MemberID = M.MemberID WHERE R.EndTime IS NULL\"
-#        # cursor.execute(query)
-#        # active_rentals = cursor.fetchall()
 
-#        return templates.TemplateResponse(
-#            request=request, 
-#            name="dashboard.html", 
-#            context={"hubs": hubs, "active_rentals": active_rentals}
-#        )
-#    finally:
-#        cursor.close()
-#        conn.close()
+    try:
+        cursor.execute("SELECT * FROM Hubs")
+        hubs = cursor.fetchall()
+
+        return templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": request,
+                "hubs": hubs
+            }
+        )
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.post("/checkout")
 def checkout(member_id: int = Form(...), serial_num: str = Form(...)):
