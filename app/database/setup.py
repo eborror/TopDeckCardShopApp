@@ -18,6 +18,7 @@ def init_db():
         cursor.execute(f"USE {os.getenv('DB_NAME')}")
 
         # DDL Statements
+        # Given example tables. Will need to be adjusted for actual card shop schema (e.g., Cards, Decks, Users, Purchases)
         tables = {
             "Tiers": "CREATE TABLE IF NOT EXISTS Tiers (TierID INT PRIMARY KEY, TierName VARCHAR(50), HourlyRate DECIMAL(5,2))",
             "Hubs": "CREATE TABLE IF NOT EXISTS Hubs (HubID INT PRIMARY KEY, HubName VARCHAR(50), Capacity INT)",
