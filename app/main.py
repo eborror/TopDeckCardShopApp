@@ -1,4 +1,6 @@
 import os
+import traceback
+from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -9,8 +11,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI(title="TopDeck Card Shop App")
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="./templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+print("TEMPLATES TYPE:", type(templates))
+print("WORKING DIR:", os.getcwd())
 
 # Connection Pool Initialization (Size 10)
 db_pool = pooling.MySQLConnectionPool(
@@ -26,19 +31,36 @@ def get_db_conn():
     return db_pool.get_connection()
 
 @app.get("/")
-def home(request: Request):
+def dashboard(request: Request):
     conn = get_db_conn()
     cursor = conn.cursor(dictionary=True)
-
     try:
+        # 1. Fetch all products (to show inventory/stock status)
         cursor.execute("SELECT * FROM PRODUCT")
         products = cursor.fetchall()
+        
+        # 2. Joined Query for Recent Checkouts
+        # This replaces your "Active Rentals" query
+        query = """
+            SELECT 
+                C.CHECKOUT_ID, 
+                CU.CUSTOMER_FNAME, 
+                CU.CUSTOMER_LNAME, 
+                C.CHECKOUT_TOTAL_PRICE, 
+                C.CHECKOUT_DATE 
+            FROM CHECKOUT C 
+            JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.CUSTOMER_ID 
+            ORDER BY C.CHECKOUT_DATE DESC 
+            LIMIT 10
+        """
+        cursor.execute(query)
+        recent_checkouts = cursor.fetchall()
 
-        return {"products": products}
-
-    except Exception as e:
-        return {"error": str(e)}
-
+        return templates.TemplateResponse(
+            request=request, 
+            name="dashboard.html", 
+            context={"products": products, "recent_checkouts": recent_checkouts}
+        )
     finally:
         cursor.close()
         conn.close()
@@ -52,7 +74,7 @@ def add_customer(
     phone: str = Form(None)
 ):
     conn = get_db_conn()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
     try:
         cursor.execute("""
