@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Velocity | Admin</title>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Velocity Admin</h2>
+        <nav><ul><li><a href='/'>Dashboard</a></li></ul></nav>
+    </div>
+    <div class="main-content">
+        <h1>Operations Dashboard</h1>
+        <div class="card">
+            <h3>Hub Status</h3>
+            <table>
+                <tr><th>Hub</th><th>Capacity</th></tr>
+                {% for hub in hubs %}
+                <tr><td>{{ hub.HubName }}</td><td>{{ hub.Capacity }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="card">
+            <h3>New Checkout</h3>
+            <form action="/checkout" method="post">
+                <input type="number" name="member_id" placeholder="Member ID" required>
+                <input type="text" name="serial_num" placeholder="Bike Serial" required>
+                <button type="submit">Rent Bike</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
