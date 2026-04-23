@@ -96,3 +96,63 @@ def add_customer(
 @app.get("/test")
 def test():
     return {"status": "working"}
+
+
+
+@app.post("/checkout")
+def add_checkout(
+    checkout_id: int = Form(...),
+    checkout_total_price: int = Form(...),
+    cashier_id: int = Form(...),
+    customer_id: int = Form(...),
+    purchases_id: int = Form(...),
+    product_id: int = Form(...),
+    purchases_quantity: int = Form(...)
+):
+    # Connection
+    conn = get_db_conn()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        # Create checkout record
+        cursor.execute("""
+          INSERT INTO CHECKOUT
+          (CHECKOUT_ID, CHECKOUT_TOTAL_PRICE, CHECKOUT_DATE, CASHIER_ID, CUSTOMER_ID)
+            VALUES (%s, %s, CURDATE(), %s, %s)
+        """, (checkout_id, checkout_total_price, cashier_id, customer_id))
+
+    # Purchase record
+    cursor.execute("""
+    INSERT INTO PURCHASES
+    (PURCHASES_ID, PURCHASES_QUANTITY, PRODUCT_ID, CHECKOUT_ID)
+    VALUES (%s, %s, %s, %s)
+     """, (purchases_id, purchases_quantity, product_id, checkout_id))
+
+#Update product stock
+cursor.execute("""
+    UPDATE PRODUCT
+    SET PRODUCT_STOCK = PRODUCT_STOCK - %s
+    WHERE PRODUCT_ID = %s
+    """, (purchases_quantity, product_id))
+
+conn.commit()
+
+# exception will catch errors, connrollback undoes the database changes
+
+execpt Exception as e:
+conn.rollback()
+print("Checkout error:", e)
+finally: 
+cursor.close()
+conn.close()
+
+return RedirectResponse(url="/", status_code=303)
+
+
+            
+
+    
+          
+        
+            
+    
