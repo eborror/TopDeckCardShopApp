@@ -2,13 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Test</title>
+    <title>TopDeck Card Shop</title>
+
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
 <body>
 
-    <h1>TopDeck Dashboard Works 🎉</h1>
+    <header>
+        <h1>TopDeck Card Shop</h1>
+        <p>Local Inventory Dashboard</p>
+    </header>
 
-    <p>If you can see this, Jinja is working correctly.</p>
+    <main>
+
+        <!-- ================= PRODUCTS ================= -->
+        <section>
+            <h2>Products</h2>
+
+            {% if products %}
+                <div class="product-grid">
+                    {% for p in products %}
+                        <div class="product-card">
+                            <h3>{{ p.PRODUCT_NAME }}</h3>
+
+                            <p><strong>Price:</strong> ${{ p.PRODUCT_PRICELISTED }}</p>
+                            <p><strong>Stock:</strong> {{ p.PRODUCT_STOCK }}</p>
+                            <p><strong>ID:</strong> {{ p.PRODUCT_ID }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No products found.</p>
+            {% endif %}
+        </section>
+
+        <hr>
+
+        <!-- ================= ADD CUSTOMER ================= -->
+        <section>
+            <h2>Add Customer</h2>
+
+            <form method="post" action="/customer" class="form-box">
+
+                <input type="number" name="customer_id" placeholder="Customer ID" required>
+
+                <input type="text" name="first_name" placeholder="First Name" required>
+
+                <input type="text" name="last_name" placeholder="Last Name">
+
+                <input type="email" name="email" placeholder="Email">
+
+                <input type="text" name="phone" placeholder="Phone">
+
+                <button type="submit">Create Customer</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <!-- ================= CHECKOUT ================= -->
+        <section>
+            <h2>Checkout</h2>
+
+            <form method="post" action="/checkout" class="form-box">
+
+                <input type="number" name="customer_id" placeholder="Customer ID" required>
+
+                <input type="number" name="product_id" placeholder="Product ID" required>
+
+                <input type="number" name="quantity" placeholder="Quantity" required>
+
+                <button type="submit">Complete Purchase</button>
+            </form>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>TopDeck Card Shop © 2026</p>
+    </footer>
 
 </body>
 </html>
