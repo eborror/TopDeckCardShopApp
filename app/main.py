@@ -62,17 +62,21 @@ def dashboard(request: Request):
         cursor.close()
         conn.close()
 
-# It will be the main page for handling interactions (sales, inventory updates, etc.)
+# This Page will have the form to process a sale and show dropdowns for customers, products, and cashiers
 @app.get("/interaction")
 def interactionHandler(request: Request):
     conn = get_db_conn()
     cursor = conn.cursor(dictionary=True)
+
     try:
         # Fetch data for dropdowns
         cursor.execute("SELECT * FROM CUSTOMER")
         customers = cursor.fetchall()
 
-        cursor.execute("SELECT PRODUCT_ID, PRODUCT_NAME, PRODUCT_PRICELISTED, PRODUCT_STOCK FROM PRODUCT")
+        cursor.execute("""
+            SELECT PRODUCT_ID, PRODUCT_NAME, PRODUCT_PRICELISTED, PRODUCT_STOCK 
+            FROM PRODUCT
+        """)
         products = cursor.fetchall()
 
         # Join Cashier with Customer to get the names
@@ -83,19 +87,42 @@ def interactionHandler(request: Request):
         """)
         cashiers = cursor.fetchall()
 
+        # Transaction history
+        cursor.execute("""
+            SELECT 
+                C.CHECKOUT_ID,
+                C.CHECKOUT_TOTAL_PRICE,
+                C.CHECKOUT_DATE,
+                CU.CUSTOMER_FNAME,
+                CU.CUSTOMER_LNAME,
+                P.PRODUCT_NAME,
+                PU.PURCHASES_QUANTITY
+            FROM CHECKOUT C
+            JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.CUSTOMER_ID
+            JOIN PURCHASES PU ON C.CHECKOUT_ID = PU.CHECKOUT_ID
+            JOIN PRODUCT P ON PU.PRODUCT_ID = P.PRODUCT_ID
+            ORDER BY C.CHECKOUT_DATE DESC, C.CHECKOUT_ID DESC
+            LIMIT 50
+        """)
+        history = cursor.fetchall()
+
         return templates.TemplateResponse(
-            request=request, 
-            name="interactionHandler.html", 
+            request=request,
+            name="interactionHandler.html",
             context={
-                "customers": customers, 
-                "products": products, 
-                "cashiers": cashiers
+                "customers": customers,
+                "products": products,
+                "cashiers": cashiers,
+                "history": history
             }
         )
+
     finally:
         cursor.close()
         conn.close()
 
+# This page processes the form submission from the interaction page, inserting
+#  into CHECKOUT and PURCHASES, and updating PRODUCT stock
 @app.post("/process_sale")
 def process_sale(
     cashier_id: int = Form(...),
