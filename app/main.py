@@ -28,39 +28,101 @@ db_pool = pooling.MySQLConnectionPool(
 def get_db_conn():
     return db_pool.get_connection()
 
+def generate_id(cursor, table_name, column_name):
+    query = f"SELECT MAX({column_name}) AS max_id FROM {table_name}"
+    cursor.execute(query)
+
+    row = cursor.fetchone()
+
+    if row is None or row["max_id"] is None:
+        return 1
+
+    return row["max_id"] + 1
+
 @app.get("/")
 def dashboard(request: Request):
     conn = get_db_conn()
     cursor = conn.cursor(dictionary=True)
+
     try:
-        # 1. Fetch all products (to show inventory/stock status)
-        cursor.execute("SELECT * FROM PRODUCT")
+        # LEFT PANEL: current stock
+        cursor.execute("""
+            SELECT PRODUCT_ID, PRODUCT_NAME, PRODUCT_PRICELISTED, PRODUCT_STOCK
+            FROM PRODUCT
+            ORDER BY PRODUCT_NAME
+        """)
         products = cursor.fetchall()
-        
-        # 2. Joined Query for Recent Checkouts
-        query = """
-            SELECT 
-                C.CHECKOUT_ID, 
-                CU.CUSTOMER_FNAME, 
-                CU.CUSTOMER_LNAME, 
-                C.CHECKOUT_TOTAL_PRICE, 
-                C.CHECKOUT_DATE 
-            FROM CHECKOUT C 
-            JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.CUSTOMER_ID 
-            ORDER BY C.CHECKOUT_DATE DESC 
-            LIMIT 10
-        """
-        cursor.execute(query)
-        recent_checkouts = cursor.fetchall()
 
         return templates.TemplateResponse(
-            request=request, 
-            name="dashboard.html", 
-            context={"products": products, "recent_checkouts": recent_checkouts}
+            request=request,
+            name="dashboard.html",
+            context={
+                "products": products
+            }
         )
+
     finally:
         cursor.close()
         conn.close()
+
+@app.post("/update_stock")
+def update_stock(
+    product_id: int = Form(...),
+    quantity: int = Form(...)
+):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE PRODUCT
+            SET PRODUCT_STOCK = PRODUCT_STOCK + %s
+            WHERE PRODUCT_ID = %s
+        """, (quantity, product_id))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        print("Stock update error:", e)
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/add_product")
+def add_product(
+    product_name: str = Form(...),
+    buy_price: float = Form(...),
+    listed_price: float = Form(...),
+    stock: int = Form(...)
+):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+
+    try:
+        # generate new ID
+        product_id = generate_id(cursor, "PRODUCT", "PRODUCT_ID")
+
+        cursor.execute("""
+            INSERT INTO PRODUCT
+            (PRODUCT_ID, PRODUCT_NAME, PRODUCT_PRICEBOUGHT, PRODUCT_PRICELISTED, PRODUCT_STOCK)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (product_id, product_name, buy_price, listed_price, stock))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        print("Add product error:", e)
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return RedirectResponse(url="/", status_code=303)
 
 # This Page will have the form to process a sale and show dropdowns for customers, products, and cashiers
 @app.get("/interaction")
@@ -151,18 +213,16 @@ def process_sale(
 
         price = float(product["PRODUCT_PRICELISTED"])
 
-        # 2. Calculate total (unless overridden)
+        # 2. Calculate total
         if total_price is None:
             total = price * quantity
         else:
             total = total_price
 
-        # 3. Generate new IDs (basic approach)
-        cursor.execute("SELECT MAX(CHECKOUT_ID) AS max_id FROM CHECKOUT")
-        checkout_id = (cursor.fetchone()["max_id"] or 0) + 1
+        # 3. Generate new IDs
+        checkout_id = generate_id(cursor, "CHECKOUT", "CHECKOUT_ID")
 
-        cursor.execute("SELECT MAX(PURCHASES_ID) AS max_id FROM PURCHASES")
-        purchases_id = (cursor.fetchone()["max_id"] or 0) + 1
+        purchases_id = generate_id(cursor, "PURCHASES", "PURCHASES_ID")
 
         # 4. Insert checkout
         cursor.execute("""
@@ -199,6 +259,86 @@ def process_sale(
         conn.close()
 
     return RedirectResponse(url="/interaction", status_code=303)
+
+@app.get("/admin")
+def admin_page(request: Request):
+    conn = get_db_conn()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # show existing customers/managers
+        cursor.execute("SELECT * FROM CUSTOMER")
+        customers = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM MANAGER")
+        managers = cursor.fetchall()
+
+        return templates.TemplateResponse(
+            request=request,
+            name="admin.html",
+            context={
+                "customers": customers,
+                "managers": managers
+            }
+        )
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.post("/add_manager")
+def add_manager(
+    customer_id: int = Form(...),
+    wage: float = Form(...),
+    hours: int = Form(...),
+    location_id: int = Form(...)
+):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+
+    manager_id = generate_id(cursor, "MANAGER", "MANAGER_ID")
+
+    try:
+        cursor.execute("""
+            INSERT INTO MANAGER
+            (MANAGER_ID, MANAGER_WAGE, MANAGER_HOURSWORKED, CUSTOMER_ID, LOCATION_ID)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (manager_id, wage, hours, customer_id, location_id))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        print("Add manager error:", e)
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+@app.post("/remove_manager")
+def remove_manager(manager_id: int = Form(...)):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            DELETE FROM MANAGER
+            WHERE MANAGER_ID = %s
+        """, (manager_id,))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        print("Remove manager error:", e)
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return RedirectResponse(url="/admin", status_code=303)
 
 @app.get("/test")
 def test():

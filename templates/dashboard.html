@@ -2,86 +2,109 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TopDeck Card Shop</title>
-
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>TopDeck - Inventory</title>
+    <link rel="stylesheet" href="/static/css/interactionHandlerStyle.css">
 </head>
 
 <body>
 
-    <header>
-        <h1>TopDeck Card Shop</h1>
-        <p>Local Inventory Dashboard</p>
-    </header>
+    <div class="page">
 
-    <main>
+        <!-- LEFT COLUMN -->
+        <div class="left">
+            <h2>Current Inventory</h2>
 
-        <!-- ================= PRODUCTS ================= -->
-        <section>
-            <h2>Products</h2>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                </tr>
 
-            {% if products %}
-                <div class="product-grid">
-                    {% for p in products %}
-                        <div class="product-card">
-                            <h3>{{ p.PRODUCT_NAME }}</h3>
+                {% for p in products %}
+                <tr>
+                    <td>{{ p.PRODUCT_ID }}</td>
+                    <td>{{ p.PRODUCT_NAME }}</td>
+                    <td>${{ p.PRODUCT_PRICELISTED }}</td>
+                    <td>{{ p.PRODUCT_STOCK }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
 
-                            <p><strong>Price:</strong> ${{ p.PRODUCT_PRICELISTED }}</p>
-                            <p><strong>Stock:</strong> {{ p.PRODUCT_STOCK }}</p>
-                            <p><strong>ID:</strong> {{ p.PRODUCT_ID }}</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>No products found.</p>
-            {% endif %}
-        </section>
+        <!-- RIGHT COLUMN -->
+        <div class="right">
 
-        <hr>
+            <h2>Inventory Controls</h2>
 
-        <!-- ================= ADD CUSTOMER ================= -->
-        <section>
-            <h2>Add Customer</h2>
+            <!-- ===================== -->
+            <!-- TOP: UPDATE STOCK -->
+            <!-- ===================== -->
+            <div class="section">
+                <h3>Update Existing Stock</h3>
 
-            <form method="post" action="/customer" class="form-box">
+                <form action="/update_stock" method="post">
 
-                <input type="number" name="customer_id" placeholder="Customer ID" required>
+                    <div class="form-group">
+                        <label>Product:</label>
+                        <select name="product_id" required>
+                            {% for p in products %}
+                            <option value="{{ p.PRODUCT_ID }}">
+                                {{ p.PRODUCT_NAME }} (Stock: {{ p.PRODUCT_STOCK }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <input type="text" name="first_name" placeholder="First Name" required>
+                    <div class="form-group">
+                        <label>Quantity Change:</label>
+                        <input type="number" name="quantity" required>
+                        <small>Use + to add, - to remove</small>
+                    </div>
 
-                <input type="text" name="last_name" placeholder="Last Name">
+                    <button type="submit">Update Stock</button>
+                </form>
+            </div>
 
-                <input type="email" name="email" placeholder="Email">
+            <hr>
 
-                <input type="text" name="phone" placeholder="Phone">
+            <!-- ===================== -->
+            <!-- BOTTOM: ADD PRODUCT -->
+            <!-- ===================== -->
+            <div class="section">
+                <h3>Add New Product</h3>
 
-                <button type="submit">Create Customer</button>
-            </form>
-        </section>
+                <form action="/add_product" method="post">
 
-        <hr>
+                    <div class="form-group">
+                        <label>Product Name:</label>
+                        <input type="text" name="product_name" required>
+                    </div>
 
-        <!-- ================= CHECKOUT ================= -->
-        <section>
-            <h2>Checkout</h2>
+                    <div class="form-group">
+                        <label>Price Bought:</label>
+                        <input type="number" step="0.01" name="buy_price" required>
+                    </div>
 
-            <form method="post" action="/checkout" class="form-box">
+                    <div class="form-group">
+                        <label>Price Listed:</label>
+                        <input type="number" step="0.01" name="listed_price" required>
+                    </div>
 
-                <input type="number" name="customer_id" placeholder="Customer ID" required>
+                    <div class="form-group">
+                        <label>Starting Stock:</label>
+                        <input type="number" name="stock" required>
+                    </div>
 
-                <input type="number" name="product_id" placeholder="Product ID" required>
+                    <button type="submit">Create Product</button>
 
-                <input type="number" name="quantity" placeholder="Quantity" required>
+                </form>
+            </div>
 
-                <button type="submit">Complete Purchase</button>
-            </form>
-        </section>
+        </div>
 
-    </main>
-
-    <footer>
-        <p>TopDeck Card Shop © 2026</p>
-    </footer>
+    </div>
 
 </body>
 </html>

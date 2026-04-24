@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TopDeck - Admin Panel</title>
+    <link rel="stylesheet" href="/static/css/interactionHandlerStyle.css">
+</head>
+
+<body>
+
+    <div class="page">
+
+        <!-- LEFT COLUMN -->
+        <div class="left">
+
+            <h2>Create Customer</h2>
+
+            <form action="/add_customer" method="post">
+
+                <div class="form-group">
+                    <label>Customer ID:</label>
+                    <input type="number" name="customer_id" required>
+                </div>
+
+                <div class="form-group">
+                    <label>First Name:</label>
+                    <input type="text" name="first_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name:</label>
+                    <input type="text" name="last_name">
+                </div>
+
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="text" name="email">
+                </div>
+
+                <div class="form-group">
+                    <label>Phone:</label>
+                    <input type="text" name="phone">
+                </div>
+
+                <button type="submit">Add Customer</button>
+
+            </form>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="right">
+
+            <h2>Manager Controls</h2>
+
+            <!-- CREATE MANAGER -->
+            <h3>Create Manager</h3>
+
+            <form action="/add_manager" method="post">
+
+                <div class="form-group">
+                    <label>Manager ID:</label>
+                    <input type="number" name="manager_id" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Customer ID (linked person):</label>
+                    <input type="number" name="customer_id" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Wage:</label>
+                    <input type="number" step="0.01" name="wage" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Hours Worked:</label>
+                    <input type="number" name="hours" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Location ID:</label>
+                    <input type="number" name="location_id" required>
+                </div>
+
+                <button type="submit">Create Manager</button>
+
+            </form>
+
+            <hr>
+
+            <!-- REMOVE MANAGER -->
+            <h3>Remove Manager</h3>
+
+            <form action="/remove_manager" method="post">
+
+                <div class="form-group">
+                    <label>Manager ID:</label>
+                    <input type="number" name="manager_id" required>
+                </div>
+
+                <button type="submit" style="background:red;">Remove Manager</button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
