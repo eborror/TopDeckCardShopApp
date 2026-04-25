@@ -340,6 +340,35 @@ def remove_manager(manager_id: int = Form(...)):
 
     return RedirectResponse(url="/admin", status_code=303)
 
+# Delete customer record
+
+@app.post("/remove_customer")
+def remove_customer(customer_id: int = Form(...)):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            DELETE FROM CUSTOMER
+            WHERE CUSTOMER_ID = %s
+        """, (customer_id,))
+        
+
+        conn.commit()
+        return {"message": "Customer removed successfully"}
+
+    except Exception as e:
+        conn.rollback()
+        print("Remove customer error:", e)
+         return {"error": str(e)}
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
+
 @app.get("/test")
 def test():
     return {"status": "working"}
