@@ -360,7 +360,7 @@ def remove_customer(customer_id: int = Form(...)):
     except Exception as e:
         conn.rollback()
         print("Remove customer error:", e)
-         return {"error": str(e)}
+        return {"error": str(e)}
 
     finally:
         cursor.close()
