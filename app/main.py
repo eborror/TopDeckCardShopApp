@@ -365,8 +365,8 @@ def remove_manager(manager_id: int = Form(...)):
         conn.close()
 
     return RedirectResponse(url="/admin", status_code=303)
-#Add customer
 
+#Add customer
 @app.post("/add_customer")
 def add_customer(
     first_name: str = Form(...),
