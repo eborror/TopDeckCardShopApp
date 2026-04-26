@@ -12,25 +12,23 @@
         <!-- LEFT COLUMN -->
         <div class="left">
             <h2>Previous Transactions</h2>
-
             <table>
                 <tr>
                     <th>ID</th>
                     <th>Customer</th>
                     <th>Product</th>
+                    <th>Store Price Bought</th> 
                     <th>Qty</th>
-                    <th>Total</th>
+                    <th>Customer Total</th>
                     <th>Date</th>
                 </tr>
-
                 {% for h in history %}
                 <tr>
-                    <td>{{ h.CHECKOUT_ID }}</td>
-                    <td>{{ h.CUSTOMER_FNAME }} {{ h.CUSTOMER_LNAME }}</td>
-                    <td>{{ h.PRODUCT_NAME }}</td>
-                    <td>{{ h.PURCHASES_QUANTITY }}</td>
-                    <td>${{ h.CHECKOUT_TOTAL_PRICE }}</td>
-                    <td>{{ h.CHECKOUT_DATE }}</td>
+                    <td>{{ h.CHECKOUT_ID }} </td>
+                    <td>{{ h.CUSTOMER_FNAME }} {{ h.CUSTOMER_LNAME }} </td>
+                    <td>{{ h.PRODUCT_NAME }} </td>
+                    <td>${{ "%.2f"|format(h.PRODUCT_PRICEBOUGHT) }}</td> <td>{{ h.PURCHASES_QUANTITY }} </td>
+                    <td>${{ "%.2f"|format(h.CHECKOUT_TOTAL_PRICE) }}</td> <td>{{ h.CHECKOUT_DATE }} </td>
                 </tr>
                 {% endfor %}
             </table>

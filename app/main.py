@@ -90,7 +90,7 @@ def update_stock(
         cursor.close()
         conn.close()
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 @app.post("/add_product")
 def add_product(
@@ -100,7 +100,7 @@ def add_product(
     stock: int = Form(...)
 ):
     conn = get_db_conn()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
     try:
         # generate new ID
@@ -122,7 +122,7 @@ def add_product(
         cursor.close()
         conn.close()
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 # This Page will have the form to process a sale and show dropdowns for customers, products, and cashiers
 @app.get("/interaction")
@@ -158,13 +158,13 @@ def interactionHandler(request: Request):
                 CU.CUSTOMER_FNAME,
                 CU.CUSTOMER_LNAME,
                 P.PRODUCT_NAME,
+                P.PRODUCT_PRICEBOUGHT,
                 PU.PURCHASES_QUANTITY
             FROM CHECKOUT C
             JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.CUSTOMER_ID
             JOIN PURCHASES PU ON C.CHECKOUT_ID = PU.CHECKOUT_ID
             JOIN PRODUCT P ON PU.PRODUCT_ID = P.PRODUCT_ID
             ORDER BY C.CHECKOUT_DATE DESC, C.CHECKOUT_ID DESC
-            LIMIT 50
         """)
         history = cursor.fetchall()
 
@@ -264,27 +264,53 @@ def process_sale(
 def admin_page(request: Request):
     conn = get_db_conn()
     cursor = conn.cursor(dictionary=True)
-
     try:
-        # show existing customers/managers
         cursor.execute("SELECT * FROM CUSTOMER")
         customers = cursor.fetchall()
 
         cursor.execute("SELECT * FROM MANAGER")
         managers = cursor.fetchall()
 
+        cursor.execute("SELECT * FROM CASHIER")
+        cashiers = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM LOCATION")
+        locations = cursor.fetchall()
+
+        cursor.execute("SELECT PRODUCT_ID, PRODUCT_NAME, PRODUCT_STOCK FROM PRODUCT")
+        products = cursor.fetchall()
+
         return templates.TemplateResponse(
             request=request,
             name="admin.html",
             context={
                 "customers": customers,
-                "managers": managers
+                "managers": managers,
+                "cashiers": cashiers,
+                "locations": locations,
+                "products": products
             }
         )
-
     finally:
         cursor.close()
         conn.close()
+
+@app.post("/add_location")
+def add_location(address: str = Form(...)):
+    conn = get_db_conn()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        location_id = generate_id(cursor, "LOCATION", "LOCATION_ID")
+        cursor.execute("INSERT INTO LOCATION (LOCATION_ID, LOCATION_ADDRESS) VALUES (%s, %s)", 
+                       (location_id, address))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("Add location error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+    return RedirectResponse(url="/admin", status_code=303)
 
 @app.post("/add_manager")
 def add_manager(
@@ -294,11 +320,11 @@ def add_manager(
     location_id: int = Form(...)
 ):
     conn = get_db_conn()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
-    manager_id = generate_id(cursor, "MANAGER", "MANAGER_ID")
 
     try:
+        manager_id = generate_id(cursor, "MANAGER", "MANAGER_ID")
         cursor.execute("""
             INSERT INTO MANAGER
             (MANAGER_ID, MANAGER_WAGE, MANAGER_HOURSWORKED, CUSTOMER_ID, LOCATION_ID)
@@ -339,7 +365,36 @@ def remove_manager(manager_id: int = Form(...)):
         conn.close()
 
     return RedirectResponse(url="/admin", status_code=303)
+#Add customer
 
+@app.post("/add_customer")
+def add_customer(
+    first_name: str = Form(...),
+    last_name: str = Form(None),
+    email: str = Form(None),
+    phone: str = Form(None)
+):
+    conn = get_db_conn()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        customer_id = generate_id(cursor, "CUSTOMER", "CUSTOMER_ID")
+
+        cursor.execute("""
+            INSERT INTO CUSTOMER 
+            (CUSTOMER_ID, CUSTOMER_FNAME, CUSTOMER_LNAME, CUSTOMER_EMAIL, CUSTOMER_PHONE)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (customer_id, first_name, last_name, email, phone))
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("Add customer error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+
+    return RedirectResponse(url="/admin", status_code=303)
 # Delete customer record
 
 @app.post("/remove_customer")
@@ -366,7 +421,29 @@ def remove_customer(customer_id: int = Form(...)):
         cursor.close()
         conn.close()
 
+@app.post("/add_cashier")
+def add_cashier(
+    customer_id: int = Form(...), 
+    wage: float = Form(...), 
+    hours: int = Form(...), 
+    location_id: int = Form(...)):
+    conn = get_db_conn()
+    cursor = conn.cursor(dictionary=True)
 
+    try:
+        cashier_id = generate_id(cursor, "CASHIER", "CASHIER_ID")
+        cursor.execute("""
+            INSERT INTO CASHIER (CASHIER_ID, CASHIER_WAGE, CASHIER_HOURSWORKED, CUSTOMER_ID, LOCATION_ID)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (cashier_id, wage, hours, customer_id, location_id))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("Add cashier error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.get("/test")
