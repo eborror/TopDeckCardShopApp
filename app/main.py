@@ -100,7 +100,7 @@ def add_product(
     stock: int = Form(...)
 ):
     conn = get_db_conn()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
     try:
         # generate new ID
@@ -122,7 +122,7 @@ def add_product(
         cursor.close()
         conn.close()
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 # This Page will have the form to process a sale and show dropdowns for customers, products, and cashiers
 @app.get("/interaction")
@@ -273,6 +273,9 @@ def admin_page(request: Request):
         cursor.execute("SELECT * FROM MANAGER")
         managers = cursor.fetchall()
 
+        cursor.execute("SELECT PRODUCT_ID, PRODUCT_NAME, PRODUCT_STOCK FROM PRODUCT")
+        products = cursor.fetchall()
+        
         return templates.TemplateResponse(
             request=request,
             name="admin.html",
@@ -294,7 +297,7 @@ def add_manager(
     location_id: int = Form(...)
 ):
     conn = get_db_conn()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
     manager_id = generate_id(cursor, "MANAGER", "MANAGER_ID")
 
@@ -339,7 +342,36 @@ def remove_manager(manager_id: int = Form(...)):
         conn.close()
 
     return RedirectResponse(url="/admin", status_code=303)
+#Add customer
 
+@app.post("/add_customer")
+def add_customer(
+    first_name: str = Form(...),
+    last_name: str = Form(None),
+    email: str = Form(None),
+    phone: str = Form(None)
+):
+    conn = get_db_conn()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        customer_id = generate_id(cursor, "CUSTOMER", "CUSTOMER_ID")
+
+        cursor.execute("""
+            INSERT INTO CUSTOMER 
+            (CUSTOMER_ID, CUSTOMER_FNAME, CUSTOMER_LNAME, CUSTOMER_EMAIL, CUSTOMER_PHONE)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (customer_id, first_name, last_name, email, phone))
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("Add customer error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+
+    return RedirectResponse(url="/admin", status_code=303)
 # Delete customer record
 
 @app.post("/remove_customer")
