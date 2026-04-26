@@ -5,107 +5,144 @@
     <title>TopDeck - Admin Panel</title>
     <link rel="stylesheet" href="/static/css/interactionHandlerStyle.css">
 </head>
-
 <body>
-
     <div class="page">
 
-        <!-- LEFT COLUMN -->
         <div class="left">
+            <h2>User & Personnel Management</h2>
 
-            <h2>Create Customer</h2>
-
-            <form action="/add_customer" method="post">
-
-                <div class="form-group">
-                    <label>Customer ID:</label>
-                    <input type="number" name="customer_id" required>
-                </div>
-
-                <div class="form-group">
-                    <label>First Name:</label>
-                    <input type="text" name="first_name" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Last Name:</label>
-                    <input type="text" name="last_name">
-                </div>
-
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="text" name="email">
-                </div>
-
-                <div class="form-group">
-                    <label>Phone:</label>
-                    <input type="text" name="phone">
-                </div>
-
-                <button type="submit">Add Customer</button>
-
-            </form>
-
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <div class="right">
-
-            <h2>Manager Controls</h2>
-
-            <!-- CREATE MANAGER -->
-            <h3>Create Manager</h3>
-
-            <form action="/add_manager" method="post">
-
-                <div class="form-group">
-                    <label>Manager ID:</label>
-                    <input type="number" name="manager_id" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Customer ID (linked person):</label>
-                    <input type="number" name="customer_id" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Wage:</label>
-                    <input type="number" step="0.01" name="wage" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Hours Worked:</label>
-                    <input type="number" name="hours" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Location ID:</label>
-                    <input type="number" name="location_id" required>
-                </div>
-
-                <button type="submit">Create Manager</button>
-
-            </form>
+            <div class="section">
+                <h3>Add New Customer</h3>
+                <form action="/add_customer" method="post">
+                    <div class="form-group">
+                        <label>First Name:</label>
+                        <input type="text" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name:</label>
+                        <input type="text" name="last_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone:</label>
+                        <input type="text" name="phone">
+                    </div>
+                    <button type="submit">Add Customer</button>
+                </form>
+            </div>
 
             <hr>
 
-            <!-- REMOVE MANAGER -->
-            <h3>Remove Manager</h3>
+            <div class="section">
+                <h3>Create Cashier</h3>
+                <form action="/add_cashier" method="post">
+                    <div class="form-group">
+                        <label>Linked Customer ID:</label>
+                        <input type="number" name="customer_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hourly Wage:</label>
+                        <input type="number" step="0.01" name="wage" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hours Worked:</label>
+                        <input type="number" name="hours" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location ID:</label>
+                        <input type="number" name="location_id" required>
+                    </div>
+                    <button type="submit">Create Cashier</button>
+                </form>
+            </div>
 
-            <form action="/remove_manager" method="post">
+            <hr>
 
-                <div class="form-group">
-                    <label>Manager ID:</label>
-                    <input type="number" name="manager_id" required>
-                </div>
+            <div class="section">
+                <h3>Create Manager</h3>
+                <form action="/add_manager" method="post">
+                    <div class="form-group">
+                        <label>Linked Customer ID:</label>
+                        <input type="number" name="customer_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Salary/Wage:</label>
+                        <input type="number" step="0.01" name="wage" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hours Worked:</label>
+                        <input type="number" name="hours" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location ID:</label>
+                        <input type="number" name="location_id" required>
+                    </div>
+                    <button type="submit">Create Manager</button>
+                </form>
+            </div>
+        </div>
 
-                <button type="submit" style="background:red;">Remove Manager</button>
+        <div class="right">
+            <h2>Inventory Management</h2>
 
-            </form>
+            <div class="section">
+                <h3>Update Existing Stock</h3>
+                <form action="/update_stock" method="post">
+                    <div class="form-group">
+                        <label>Select Product:</label>
+                        <select name="product_id" required>
+                            {% for p in products %}
+                            <option value="{{ p.PRODUCT_ID }}">
+                                {{ p.PRODUCT_NAME }} (Current: {{ p.PRODUCT_STOCK }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Adjustment:</label>
+                        <input type="number" name="quantity" placeholder="e.g., 10 or -5" required>
+                    </div>
+                    <button type="submit">Update Stock</button>
+                </form>
+            </div>
 
+            <hr>
+
+            <div class="section">
+                <h3>Add New Product</h3>
+                <form action="/add_product" method="post">
+                    <div class="form-group">
+                        <label>Product Name:</label>
+                        <input type="text" name="product_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Buy Price:</label>
+                        <input type="number" step="0.01" name="buy_price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Listed Sale Price:</label>
+                        <input type="number" step="0.01" name="listed_price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Initial Stock Level:</label>
+                        <input type="number" name="stock" required>
+                    </div>
+                    <button type="submit">Create Product</button>
+                </form>
+            </div>
+            
+            <hr>
+
+            <div class="section">
+                <a href="/" style="text-decoration:none;">
+                    <button type="button" style="background-color:#7f8c8d;">Back to Dashboard</button>
+                </a>
+            </div>
         </div>
 
     </div>
-
 </body>
 </html>
