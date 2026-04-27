@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TopDeck - Transactions</title>
+    <link rel="stylesheet" href="/static/css/interactionHandlerStyle.css">
+</head>
+
+<body>
+    <div class="page">
+
+        <!-- LEFT COLUMN -->
+        <div class="left">
+            <h2>Previous Transactions</h2>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Store Price Bought</th> 
+                    <th>Qty</th>
+                    <th>Customer Total</th>
+                    <th>Date</th>
+                </tr>
+                {% for h in history %}
+                <tr>
+                    <td>{{ h.CHECKOUT_ID }} </td>
+                    <td>{{ h.CUSTOMER_FNAME }} {{ h.CUSTOMER_LNAME }} </td>
+                    <td>{{ h.PRODUCT_NAME }} </td>
+                    <td>${{ "%.2f"|format(h.PRODUCT_PRICEBOUGHT) }}</td> <td>{{ h.PURCHASES_QUANTITY }} </td>
+                    <td>${{ "%.2f"|format(h.CHECKOUT_TOTAL_PRICE) }}</td> <td>{{ h.CHECKOUT_DATE }} </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="right">
+            <h2>Process New Sale</h2>
+
+            <form action="/process_sale" method="post">
+
+                <div class="form-group">
+                    <label>Cashier:</label>
+                    <select name="cashier_id" required>
+                        {% for cashier in cashiers %}
+                        <option value="{{ cashier.CASHIER_ID }}">
+                            {{ cashier.CUSTOMER_FNAME }} {{ cashier.CUSTOMER_LNAME }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Customer:</label>
+                    <select name="customer_id" required>
+                        {% for customer in customers %}
+                        <option value="{{ customer.CUSTOMER_ID }}">
+                            {{ customer.CUSTOMER_FNAME }} {{ customer.CUSTOMER_LNAME }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Product:</label>
+                    <select name="product_id" required>
+                        {% for product in products %}
+                        <option value="{{ product.PRODUCT_ID }}">
+                            {{ product.PRODUCT_NAME }} (${{ product.PRODUCT_PRICELISTED }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type="number" name="quantity" min="1" value="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Total Price (auto-calculated):</label>
+                    <input type="number" step="0.01" name="total_price">
+                </div>
+
+                <button type="submit">Complete Transaction</button>
+
+            </form>
+        </div>
+
+    </div>
+
+</body>
+</html>
