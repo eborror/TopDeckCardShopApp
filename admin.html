@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TopDeck - Admin Panel</title>
+    <link rel="stylesheet" href="/static/css/interactionHandlerStyle.css">
+    <style>
+        .admin-grid { display: flex; gap: 20px; }
+        .data-view { flex: 1.5; } 
+        .form-view { flex: 1; background: white; padding: 15px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid white; padding: 8px; text-align: left; font-size: 0.9em; }
+        th { background-color: #2c3e50; color: white; }
+        
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-size: 0.85em; font-weight: bold; margin-bottom: 3px; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="data-view">
+            <h2>Current Database Records</h2>
+            
+            <h3>Customers</h3>
+            <table>
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th></tr>
+                {% for c in customers %}
+                <tr><td>{{ c.CUSTOMER_ID }}</td><td>{{ c.CUSTOMER_FNAME }} {{ c.CUSTOMER_LNAME }}</td><td>{{ c.CUSTOMER_EMAIL }}</td><td>{{ c.CUSTOMER_PHONE }}</td></tr>
+                {% endfor %}
+            </table>
+
+            <h3>Managers</h3>
+            <table>
+                <tr><th>ID</th><th>Customer ID</th><th>Location ID</th><th>Wage</th><th>Hours</th></tr>
+                {% for m in managers %}
+                <tr><td>{{ m.MANAGER_ID }}</td><td>{{ m.CUSTOMER_ID }}</td><td>{{ m.LOCATION_ID }}</td><td>{{ m.MANAGER_WAGE }}</td><td>{{ m.MANAGER_HOURSWORKED }}</td><td>
+            <form action="/remove_manager" method="post" style="margin:0;">
+                <input type="hidden" name="manager_id" value="{{ m.MANAGER_ID }}">
+                <button type="submit" 
+                        style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;"
+                        onclick="return confirm('Remove this manager? This will only delete their manager status, not their customer record.')">
+                    Delete
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+            <h3>Cashiers</h3>
+            <table>
+                <tr><th>ID</th><th>Customer ID</th><th>Location ID</th><th>Wage</th><th>Hours</th></tr>
+                {% for ca in cashiers %}
+                <tr><td>{{ ca.CASHIER_ID }}</td><td>{{ ca.CUSTOMER_ID }}</td><td>{{ ca.LOCATION_ID }}</td><td>{{ ca.CASHIER_WAGE }}</td><td>{{ ca.CASHIER_HOURSWORKED }}</td></tr>
+                {% endfor %}
+            </table>
+
+            <h3>Locations</h3>
+            <table>
+                <tr><th>ID</th><th>Address</th></tr>
+                {% for l in locations %}
+                <tr><td>{{ l.LOCATION_ID }}</td><td>{{ l.LOCATION_ADDRESS }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="form-view">
+            <h2>Personnel Controls</h2>
+            
+            <section>
+                <h3>Add Location</h3>
+                <form action="/add_location" method="post">
+                    <input type="text" name="address" placeholder="Store Address" required>
+                    <button type="submit">Add Location</button>
+                </form>
+            </section>
+            <hr>
+            <section>
+                <h3>Add Customer</h3>
+                <form action="/add_customer" method="post">
+                    <input type="text" name="first_name" placeholder="First Name" required>
+                    <input type="text" name="last_name" placeholder="Last Name">
+                    <input type="text" name="email" placeholder="Email">
+                    <input type="text" name="phone" placeholder="Phone Number">
+                    <button type="submit">Add Customer</button>
+                </form>
+            </section>
+            <hr>
+            <section>
+                <h3>Add Manager/Cashier</h3>
+                <p><small>Note: Use IDs from the tables on the left.</small></p>
+                <form action="/add_manager" method="post">
+                    <input type="number" name="customer_id" placeholder="Customer ID" required>
+                    <input type="number" name="location_id" placeholder="Location ID" required>
+                    <input type="number" step="0.01" name="wage" placeholder="Wage" required>
+                    <input type="number" name="hours" placeholder="Hours" required>
+                    <button type="submit">Create Manager</button>
+                </form>
+                <br>
+                <form action="/add_cashier" method="post">
+                    <input type="number" name="customer_id" placeholder="Customer ID" required>
+                    <input type="number" name="location_id" placeholder="Location ID" required>
+                    <input type="number" step="0.01" name="wage" placeholder="Wage" required>
+                    <input type="number" name="hours" placeholder="Hours" required>
+                    <button type="submit">Create Cashier</button>
+                </form>
+            </section>
+        </div>
+
+        <div class="form-view" style="background: white;">
+            <h2>Inventory Controls</h2>
+            
+            <section>
+                <h3>Update Existing Stock</h3>
+                <form action="/update_stock" method="post">
+                    <div class="form-group">
+                        <label>Select Product:</label>
+                        <select name="product_id" required>
+                            {% for p in products %}
+                            <option value="{{ p.PRODUCT_ID }}">{{ p.PRODUCT_NAME }} (ID: {{ p.PRODUCT_ID }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Adjustment (+/-):</label>
+                        <input type="number" name="quantity" placeholder="Use + to add, - to remove" required>
+                    </div>
+                    <button type="submit">Update Stock</button>
+                </form>
+            </section>
+
+            <hr>
+
+            <section>
+                <h3>Add New Product</h3>
+                <form action="/add_product" method="post">
+                    <div class="form-group">
+                        <label>Product Name:</label>
+                        <input type="text" name="product_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Buy Price:</label>
+                        <input type="number" step="0.01" name="buy_price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sale Price:</label>
+                        <input type="number" step="0.01" name="listed_price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Initial Stock:</label>
+                        <input type="number" name="stock" required>
+                    </div>
+                    <button type="submit">Create Product</button>
+                </form>
+            </section>
+        </div>
+
+    </div>
+</body>
+</html>
