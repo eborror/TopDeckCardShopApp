@@ -7,9 +7,9 @@
     <style>
         .admin-grid { display: flex; gap: 20px; }
         .data-view { flex: 1.5; } 
-        .form-view { flex: 1; background: #eee; padding: 15px; border-radius: 8px; }
+        .form-view { flex: 1; background: white; padding: 15px; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9em; }
+        th, td { border: 1px solid white; padding: 8px; text-align: left; font-size: 0.9em; }
         th { background-color: #2c3e50; color: white; }
         
         .form-group { margin-bottom: 10px; }
@@ -31,17 +31,27 @@
 
             <h3>Managers</h3>
             <table>
-                <tr><th>ID</th><th>Customer ID</th><th>Location ID</th><th>Wage</th></tr>
+                <tr><th>ID</th><th>Customer ID</th><th>Location ID</th><th>Wage</th><th>Hours</th></tr>
                 {% for m in managers %}
-                <tr><td>{{ m.MANAGER_ID }}</td><td>{{ m.CUSTOMER_ID }}</td><td>{{ m.LOCATION_ID }}</td><td>{{ m.MANAGER_WAGE }}</td></tr>
-                {% endfor %}
-            </table>
+                <tr><td>{{ m.MANAGER_ID }}</td><td>{{ m.CUSTOMER_ID }}</td><td>{{ m.LOCATION_ID }}</td><td>{{ m.MANAGER_WAGE }}</td><td>{{ m.MANAGER_HOURSWORKED }}</td><td>
+            <form action="/remove_manager" method="post" style="margin:0;">
+                <input type="hidden" name="manager_id" value="{{ m.MANAGER_ID }}">
+                <button type="submit" 
+                        style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;"
+                        onclick="return confirm('Remove this manager? This will only delete their manager status, not their customer record.')">
+                    Delete
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 
             <h3>Cashiers</h3>
             <table>
-                <tr><th>ID</th><th>Customer ID</th><th>Location ID</th><th>Wage</th></tr>
+                <tr><th>ID</th><th>Customer ID</th><th>Location ID</th><th>Wage</th><th>Hours</th></tr>
                 {% for ca in cashiers %}
-                <tr><td>{{ ca.CASHIER_ID }}</td><td>{{ ca.CUSTOMER_ID }}</td><td>{{ ca.LOCATION_ID }}</td><td>{{ ca.CASHIER_WAGE }}</td></tr>
+                <tr><td>{{ ca.CASHIER_ID }}</td><td>{{ ca.CUSTOMER_ID }}</td><td>{{ ca.LOCATION_ID }}</td><td>{{ ca.CASHIER_WAGE }}</td><td>{{ ca.CASHIER_HOURSWORKED }}</td></tr>
                 {% endfor %}
             </table>
 
@@ -97,7 +107,7 @@
             </section>
         </div>
 
-        <div class="form-view" style="background: #e8f4f8;">
+        <div class="form-view" style="background: white;">
             <h2>Inventory Controls</h2>
             
             <section>
