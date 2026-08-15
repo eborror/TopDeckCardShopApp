@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TopDeck - Inventory Dashboard</title>
+    <link rel="stylesheet" href="/static/css/interactionHandlerStyle.css">
+</head>
+<body>
+    <div class="page">
+        <div class="left" style="flex: 1;">
+            <div style="margin-bottom: 20px;">
+                <h2>Current Shop Inventory</h2>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product Name</th>
+                        <th>Sale Price</th>
+                        <th>Stock Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>{{ p.PRODUCT_ID }}</td>
+                        <td>{{ p.PRODUCT_NAME }}</td>
+                        <td>${{ "%.2f"|format(p.PRODUCT_PRICELISTED) }}</td>
+                        <td>
+                            {{ p.PRODUCT_STOCK }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
